@@ -28,6 +28,15 @@ namespace Tasks
             if (!int.TryParse(inp, out res) && default_ != 0) res = default_;
             return res;
         }
+        public static int ask(string text, Func<int, bool> iff)
+        {
+            for (; ;)
+            {
+                int r = ask(text);
+                if (iff(r)) return r;
+            }
+
+        }
         public static int Choice(string[] list)
         {
             int select = 0;
@@ -39,7 +48,7 @@ namespace Tasks
 
             while (true)
             {
-                info = Console.ReadKey();
+                info = Console.ReadKey(true);
                 Console.CursorLeft = 0;
 
                 if (info.Key == ConsoleKey.DownArrow)
@@ -93,11 +102,106 @@ namespace Tasks
             s = s.Substring(0, s.Length - 2) + "]";
             return s;
         }
+        public static string ArrayToStrInd<T>(T[] arr)
+        {
+            string s = "[";
+            for(int i = 0; i < arr.Length; i++) s += $"{i}: {arr[i].ToString()}, ";
+            s = s.Substring(0, s.Length - 2) + "]";
+            return s;
+        }
+        public static string ArrayToStrIndB<T>(T[] arr)
+        {
+            string s = "[\n";
+            for(int i = 0; i < arr.Length; i++) s += $"  {i}: {arr[i].ToString()},\n";
+            s = s.Substring(0, s.Length - 2) + "\n]";
+            return s;
+        }
 
         public static Random rnd = new Random();
-        public static void FillRnd(ref int[] arr)
+        public static void ArrayFillRnd(ref int[] arr, int min = 0, int max = 1000)
         {
-            for (int i = 0; i < arr.Length; i++) arr[i] = rnd.Next(0, 1000);
+            for (int i = 0; i < arr.Length; i++) arr[i] = rnd.Next(min, max+1);
+        }
+        
+        public static void WriteCenter(string text)
+        {
+            if (text.Length <= Console.WindowWidth)
+                Console.WriteLine(new string(' ', Console.WindowWidth / 2 - text.Length / 2) + text);
+            else
+                Console.WriteLine(
+                    text.Insert(
+                        text.Length / Console.WindowWidth * Console.WindowWidth,
+                        new string(' ', Console.WindowWidth / 2 - (text.Length % Console.WindowWidth) / 2)
+                        )
+                    );
+        }
+
+        public static int[] FillArr()
+        {
+            Console.WriteLine("Введите значения (пустая строка - закончить):");
+            int[] arr = new int[] { };
+            for (int i = 0; ; i++)
+            {
+                Console.Write($"[{i}] > ");
+                string inp = Console.ReadLine();
+                if (inp == "") break;
+                int n;
+                if (!int.TryParse(inp, out n)) break;
+                Array.Resize(ref arr, i + 1);
+                arr[i] = n;
+            }
+            return arr;
+        }
+
+        public static string MatrixToStr<T>(T[,] arr)
+        {
+            string s = "";
+            for (int i = 0; i < arr.GetLength(0); i++)
+            {
+                s += '[';
+                for (int j = 0; j < arr.GetLength(1); j++)
+                {
+                    s += arr[i,j].ToString() + ", ";
+                }
+                s = s.Substring(0, s.Length - 2) + "]\n";
+            }
+            return s;
+        }
+        public static int FindMax(int[,] arr)
+        {
+            int max = arr[0,0];
+            for (int i = 0; i < arr.GetLength(0); i++)
+                for (int j = 0; j < arr.GetLength(1); j++)
+                    if (arr[i, j] > max) max = arr[i, j];
+            return max;
+        }
+        public static string MinLength(string s, int len)
+        {
+            if (s.Length < len) return s + new string(' ', len - s.Length);
+            else return s;
+        }
+        public static string MatrixToStrB(int[,] arr)
+        {
+            string s = "";
+            int minLength = FindMax(arr).ToString().Length + 2;
+            for (int i = 0; i < arr.GetLength(0); i++)
+            {
+                s += '[';
+                for (int j = 0; j < arr.GetLength(1) - 1; j++)
+                {
+                    s += MinLength($"{arr[i,j]}, ", minLength);
+                }
+                s += MinLength(arr[i, arr.GetLength(1) - 1].ToString(), minLength - 2);
+                s += "]\n";
+            }
+            return s;
+        }
+
+        public static void MatrixFillRnd(ref int[,] arr, int min = 0, int max = 1000)
+        {
+            for (int i = 0; i < arr.GetLength(0); i++)
+                for (int j = 0; j < arr.GetLength(1); j++) 
+                    arr[i, j] = rnd.Next(min, max + 1);
         }
     }
 }

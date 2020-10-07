@@ -44,7 +44,7 @@ namespace Tasks
             Random rnd = new Random();
             int size = helper.ask("Введите размер массива: ", default_: 5);
             int[] a = new int[size];
-            helper.FillRnd(ref a);
+            helper.ArrayFillRnd(ref a);
 
             Console.WriteLine(ArrayToStr(a));
 
