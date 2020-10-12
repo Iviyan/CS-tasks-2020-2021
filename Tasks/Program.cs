@@ -8,7 +8,7 @@ namespace Tasks
     {
         static void Main(string[] args)
         {
-            T05_10_2020.Main_();
+            T12_10_2020.Main_();
         }
     }
 }
