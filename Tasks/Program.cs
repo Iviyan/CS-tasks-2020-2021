@@ -8,7 +8,11 @@ namespace Tasks
     {
         static void Main(string[] args)
         {
-            T12_10_2020.Main_();
+            /*Console.Write("123: ");
+            string v = "";
+            helper.ReadLine_pattern(ref v, @"\d\d.\d\d.\d\d\d\d", "25.12.2001");
+            Console.WriteLine(v);*/
+            T15_10_2020.Main_();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Tasks
 {
@@ -30,14 +31,15 @@ namespace Tasks
         }
         public static int ask(string text, Func<int, bool> iff)
         {
-            for (; ;)
+            for (; ; )
             {
                 int r = ask(text);
                 if (iff(r)) return r;
             }
 
         }
-        public static int Choice(string[] list)
+        public static int Choice(string[] list) => Choice(list, (k, i) => null);
+        public static int Choice(string[] list, Func<ConsoleKey, int, int?> act)
         {
             int select = 0;
             int pos = Console.CursorTop;
@@ -80,7 +82,11 @@ namespace Tasks
                     }
                     Console.Write($"> {list[select]}");
 
-                } else if (info.Key == ConsoleKey.Enter) { Console.CursorTop = posEnd + 1; return select; }
+                } else if (info.Key == ConsoleKey.Enter) { Console.CursorTop = posEnd + 1; return select; } else
+                {
+                    int? t = act(info.Key, select);
+                    if (t != null) return (int)t;
+                }
             }
         }
         public static string Choice_str(string[] list)
@@ -105,14 +111,14 @@ namespace Tasks
         public static string ArrayToStrInd<T>(T[] arr)
         {
             string s = "[";
-            for(int i = 0; i < arr.Length; i++) s += $"{i}: {arr[i].ToString()}, ";
+            for (int i = 0; i < arr.Length; i++) s += $"{i}: {arr[i].ToString()}, ";
             s = s.Substring(0, s.Length - 2) + "]";
             return s;
         }
         public static string ArrayToStrIndB<T>(T[] arr)
         {
             string s = "[\n";
-            for(int i = 0; i < arr.Length; i++) s += $"  {i}: {arr[i].ToString()},\n";
+            for (int i = 0; i < arr.Length; i++) s += $"  {i}: {arr[i].ToString()},\n";
             s = s.Substring(0, s.Length - 2) + "\n]";
             return s;
         }
@@ -120,9 +126,9 @@ namespace Tasks
         public static Random rnd = new Random();
         public static void ArrayFillRnd(ref int[] arr, int min = 0, int max = 1000)
         {
-            for (int i = 0; i < arr.Length; i++) arr[i] = rnd.Next(min, max+1);
+            for (int i = 0; i < arr.Length; i++) arr[i] = rnd.Next(min, max + 1);
         }
-        
+
         public static void WriteCenter(string text)
         {
             if (text.Length <= Console.WindowWidth)
@@ -161,7 +167,7 @@ namespace Tasks
                 s += '[';
                 for (int j = 0; j < arr.GetLength(1); j++)
                 {
-                    s += arr[i,j].ToString() + ", ";
+                    s += arr[i, j].ToString() + ", ";
                 }
                 s = s.Substring(0, s.Length - 2) + "]\n";
             }
@@ -169,7 +175,7 @@ namespace Tasks
         }
         public static int FindMax(int[,] arr)
         {
-            int max = arr[0,0];
+            int max = arr[0, 0];
             for (int i = 0; i < arr.GetLength(0); i++)
                 for (int j = 0; j < arr.GetLength(1); j++)
                     if (arr[i, j] > max) max = arr[i, j];
@@ -189,7 +195,7 @@ namespace Tasks
                 s += '[';
                 for (int j = 0; j < arr.GetLength(1) - 1; j++)
                 {
-                    s += MinLength($"{arr[i,j]}, ", minLength);
+                    s += MinLength($"{arr[i, j]}, ", minLength);
                 }
                 s += MinLength(arr[i, arr.GetLength(1) - 1].ToString(), minLength - 2);
                 s += "]\n";
@@ -200,8 +206,266 @@ namespace Tasks
         public static void MatrixFillRnd(ref int[,] arr, int min = 0, int max = 1000)
         {
             for (int i = 0; i < arr.GetLength(0); i++)
-                for (int j = 0; j < arr.GetLength(1); j++) 
+                for (int j = 0; j < arr.GetLength(1); j++)
                     arr[i, j] = rnd.Next(min, max + 1);
+        }
+
+        public static string ReadLine_esc(string input = "")
+        {
+            string v = input;
+            ReadLine_esc(ref v, input);
+            return v;
+        }
+        public static bool ReadLine_esc(ref string value, string input = "")
+        {
+            int left = Console.CursorLeft,
+                pos = 0;
+
+            StringBuilder buffer = new StringBuilder();
+
+            if (input != "")
+            {
+                buffer.Append(input);
+                pos = input.Length;
+                Console.Write(input);
+            }
+
+            ConsoleKeyInfo key = Console.ReadKey(true);
+            while (key.Key != ConsoleKey.Enter && key.Key != ConsoleKey.Escape)
+            {
+                if (key.Key == ConsoleKey.Backspace && pos > 0)
+                {
+                    buffer.Remove(--pos, 1);
+                    Console.CursorLeft--;
+                    Console.Write(buffer.ToString(pos, buffer.Length - pos) + ' ');
+                    Console.CursorLeft = left + pos;
+                } else if (Char.IsLetterOrDigit(key.KeyChar) || Char.IsWhiteSpace(key.KeyChar))
+                {
+                    buffer.Insert(pos++, key.KeyChar);
+                    Console.Write(buffer.ToString(pos - 1, buffer.Length - pos + 1));
+                    Console.CursorLeft = left + pos;
+                } else if (key.Key == ConsoleKey.LeftArrow && pos > 0)
+                {
+                    Console.CursorLeft--; pos--;
+                } else if (key.Key == ConsoleKey.RightArrow && pos < buffer.Length)
+                {
+                    Console.CursorLeft++; pos++;
+                }
+                key = Console.ReadKey(true);
+            }
+
+            if (key.Key == ConsoleKey.Enter)
+            {
+                Console.WriteLine();
+                value = buffer.ToString();
+                return true;
+            }
+            return false;
+        }
+
+        public static string ReadLine_pattern(string pattern, string input = "")
+        {
+            string v = input;
+            ReadLine_pattern(ref v, pattern, input);
+            return v;
+        }
+        /// <summary>
+        /// \. - любой символ <br/>
+        /// \d - число <br/>
+        /// \D - число или пробел <br/>
+        /// \w - буква/число <br/>
+        /// \\ = \ <br/>
+        /// Остальные символы - неизменяемые
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="pattern"></param>
+        /// <returns>esc => false | enter => true</returns>
+        public static bool ReadLine_pattern(ref string value, string pattern, string input = "")
+        {
+            int left = Console.CursorLeft;
+
+            StringBuilder buffer = new StringBuilder();
+            string patt = "";
+            List<int> muts = new List<int>();
+
+            char[] sc = new char[] { '.', 'd', 'D', 'w', 'c' };
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (pattern[i] == '\\' && i + 1 < pattern.Length && sc.Contains(pattern[i + 1]))
+                {
+                    buffer.Append(' ');
+                    patt += pattern[i + 1];
+                    muts.Add(patt.Length - 1);
+                    i += 1;
+                } else
+                {
+                    patt += pattern[i];
+                    buffer.Append(pattern[i]);
+                }
+            }
+            int len = muts.Count;
+            if (len == 0) { value = patt; return true; }
+            int pos = muts[0];
+
+            bool check(char c, char pattC)
+            {
+                switch (pattC)
+                {
+                    case '.': return true;
+                    case 'd': return Regex.IsMatch(c.ToString(), @"\d");
+                    case 'D': return c == ' ' || Regex.IsMatch(c.ToString(), @"\d");
+                    case 'w': return Regex.IsMatch(c.ToString(), @"\w");
+                }
+                return false;
+            }
+            char pdefault(char pc)
+            {
+                switch (pc)
+                {
+                    case 'd': return '0';
+                }
+                return ' ';
+            }
+
+            if (input != "" && input.Length <= patt.Length)
+            {
+                foreach (int mi in muts) {
+                    if (mi >= input.Length) break;
+                    if (check(input[mi], patt[mi]))
+                        buffer[mi] = input[mi];
+                }
+            }
+
+            Console.Write(buffer.ToString());
+
+            Console.CursorLeft = left + pos;
+
+            ConsoleKeyInfo key = Console.ReadKey(true);
+            while (key.Key != ConsoleKey.Enter && key.Key != ConsoleKey.Escape)
+            {
+                if (key.Key == ConsoleKey.Backspace && pos > 0)
+                {
+                    buffer[muts[--pos]] = pdefault(patt[muts[pos]]);
+                    Console.CursorLeft = left + muts[pos];
+                    Console.Write(buffer.ToString(muts[pos], 1));
+                    Console.CursorLeft--;
+                } else if (pos < muts.Count && (Char.IsLetterOrDigit(key.KeyChar) || Char.IsWhiteSpace(key.KeyChar)))
+                {
+                    if (check(key.KeyChar, patt[muts[pos]]))
+                    {
+                        buffer[muts[pos++]] = key.KeyChar;
+                        Console.Write(buffer.ToString(muts[pos - 1], 1));
+                        Console.CursorLeft = left + (pos == len ? muts[pos - 1] + 1 : muts[pos]);
+                    }
+                } else if (key.Key == ConsoleKey.LeftArrow && pos > 0)
+                {
+                    Console.CursorLeft = left + muts[--pos];
+                } else if (key.Key == ConsoleKey.RightArrow && pos < muts.Count - 1)
+                {
+                    Console.CursorLeft = left + muts[++pos];
+                }
+                key = Console.ReadKey(true);
+            }
+
+            if (key.Key == ConsoleKey.Enter)
+            {
+                Console.WriteLine();
+                value = buffer.ToString();
+                return true;
+            }
+            return false;
+        }
+
+        public class Param
+        {
+            public string Name,
+                          Value,
+                          Pattern;
+            public bool Require;
+
+            public Param(string name, string value, string pattern = "", bool require = false)
+            {
+                this.Name = name;
+                this.Value = value;
+                this.Pattern = pattern;
+                this.Require = require;
+            }
+
+        }
+        public static void EditParams(List<Param> paramList)
+        {
+            int selectInd = 0;
+            int top = Console.CursorTop;
+            int count = paramList.Count + 1;
+            Console.Write(paramList.Aggregate("", (acc, par) => acc += $"  {par.Name}: {par.Value}\n") + "  Сохранить\n");
+            ConsoleKeyInfo info;
+
+            void setSel() { if (selectInd < count - 1) Console.CursorLeft = paramList[selectInd].Name.Length + 4 + paramList[selectInd].Value.Length; else Console.CursorLeft = 0; };
+            void select(int ind)
+            {
+                Console.SetCursorPosition(0, top + selectInd);
+                Console.CursorLeft = 0;
+                Console.Write($" ");
+                Console.SetCursorPosition(0, top + ind);
+                Console.Write($">");
+                selectInd = ind;
+                setSel();
+            }
+            bool end()
+            {
+                int? req = null;
+                for (int i = 0; i < paramList.Count; i++)
+                    if (paramList[i].Require && paramList[i].Value == "")
+                    { req = i; break; }
+                if (req != null)
+                {
+                    select((int)req);
+                    return false;
+                } else
+                {
+                    Console.CursorTop = top + count + 1;
+                    return true;
+                }
+            }
+
+            select(0);
+
+            while (true)
+            {
+                info = Console.ReadKey(true);
+
+                if (info.Key == ConsoleKey.DownArrow)
+                {
+                    if (selectInd + 1 < count)
+                        select(selectInd + 1);
+                    else
+                        select(0);
+
+                } else if (info.Key == ConsoleKey.UpArrow)
+                {
+                    if (selectInd > 0)
+                        select(selectInd - 1);
+                    else
+                        select(count - 1);
+
+                } else if (info.Key == ConsoleKey.Enter)
+                {
+                    if (selectInd == count - 1)
+                    {
+                        if (end()) return;
+                    } else
+                    {
+                        Param p = paramList[selectInd];
+                        Console.CursorLeft = paramList[selectInd].Name.Length + 4;
+
+                        if (p.Pattern == "") p.Value = ReadLine_esc(p.Value);
+                        else p.Value = ReadLine_pattern(p.Pattern, p.Value);
+                        select(selectInd);
+                    }
+                } else if (info.Key == ConsoleKey.Escape) if (end()) return;
+                
+                setSel();
+            }
         }
     }
 }
