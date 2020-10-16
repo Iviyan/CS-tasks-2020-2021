@@ -1,8 +1,7 @@
-﻿using System;
+﻿#define struct //16.10.2020
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 
 namespace Tasks
 {
@@ -16,7 +15,11 @@ namespace Tasks
             "Информатика",
             "Физ-ра"
         };
+#if !struct
         public class Student
+#else
+        public struct Student
+#endif
         {
             public string FirstName;
             public string LastName;
@@ -52,7 +55,7 @@ namespace Tasks
         static void EditStudent(int ind)
         {
             Student st = students[ind];
-
+            
             Console.Clear();
             Console.WriteLine("Enter - редактировать, управление стрелками\n"); 
             
@@ -66,9 +69,7 @@ namespace Tasks
             };
             for (int i = 0; i < lessons.Length; i++) plist.Add(new helper.Param($"Предмет {lessons[i]}", st.Lessons[lessons[i]].ToString(), @"\d", true));
 
-           // helper.mb(plist.Aggregate("", (a, s) => a += $"{s.Name} = {s.Value}\n"));
             helper.EditParams(plist);
-           // helper.mb(plist.Aggregate("", (a, s) => a += $"{s.Name} = {s.Value}\n"));
 
             st.FirstName = plist[0].Value;
             st.LastName = plist[1].Value;
@@ -80,6 +81,9 @@ namespace Tasks
             {
                 st.Lessons[lessons[i]] = int.Parse(plist[5 + i].Value);
             }
+#if struct
+            students[ind] = st;
+#endif
         }
         static void AddStudent()
         {
