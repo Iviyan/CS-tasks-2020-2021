@@ -210,6 +210,8 @@ namespace Tasks
                     arr[i, j] = rnd.Next(min, max + 1);
         }
 
+        public static bool IsInputChar(char c) => Char.IsLetterOrDigit(c) || Char.IsPunctuation(c) || Char.IsWhiteSpace(c) || Char.IsSymbol(c);
+
         public static string ReadLine_esc(string input = "")
         {
             string v = input;
@@ -239,7 +241,7 @@ namespace Tasks
                     Console.CursorLeft--;
                     Console.Write(buffer.ToString(pos, buffer.Length - pos) + ' ');
                     Console.CursorLeft = left + pos;
-                } else if (Char.IsLetterOrDigit(key.KeyChar) || Char.IsWhiteSpace(key.KeyChar))
+                } else if (IsInputChar(key.KeyChar))
                 {
                     buffer.Insert(pos++, key.KeyChar);
                     Console.Write(buffer.ToString(pos - 1, buffer.Length - pos + 1));
@@ -349,7 +351,7 @@ namespace Tasks
                     Console.CursorLeft = left + muts[pos];
                     Console.Write(buffer.ToString(muts[pos], 1));
                     Console.CursorLeft--;
-                } else if (pos < muts.Count && (Char.IsLetterOrDigit(key.KeyChar) || Char.IsWhiteSpace(key.KeyChar)))
+                } else if (pos < muts.Count && IsInputChar(key.KeyChar))
                 {
                     if (check(key.KeyChar, patt[muts[pos]]))
                     {
