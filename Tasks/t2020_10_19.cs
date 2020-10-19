@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Tasks
 {
-    class T19_10_2020
+    class t19_10_2020
     {
         public static void T1_4()
         {
